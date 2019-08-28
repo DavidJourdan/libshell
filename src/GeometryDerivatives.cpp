@@ -1,5 +1,5 @@
 #include "GeometryDerivatives.h"
-#include "../include/MeshConnectivity.h"
+#include "libshell/MeshConnectivity.h"
 #include <iostream>
 #include <random>
 #include <Eigen/Geometry>

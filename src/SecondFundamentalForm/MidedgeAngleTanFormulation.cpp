@@ -1,7 +1,7 @@
-#include "../../include/MidedgeAngleTanFormulation.h"
+#include "libshell/MidedgeAngleTanFormulation.h"
 #include <Eigen/Geometry>
 #include "../GeometryDerivatives.h"
-#include "../../include/MeshConnectivity.h"
+#include "libshell/MeshConnectivity.h"
 #include <iostream>
 #include <random>
 #include <Eigen/Geometry>
@@ -36,8 +36,8 @@ static double edgeTheta(
     Eigen::Matrix<double, 1, 6> angderiv;
     Eigen::Matrix<double, 6, 6> anghess;
 
-    double theta = angle(n0, n1, axis, (derivative || hessian) ? &angderiv : NULL, hessian ? &anghess : NULL);    
-    
+    double theta = angle(n0, n1, axis, (derivative || hessian) ? &angderiv : NULL, hessian ? &anghess : NULL);
+
     if (derivative)
     {
         derivative->block(0, 0, 1, 3) += angderiv.block(0, 0, 1, 3) * crossMatrix(q2 - q1);
@@ -106,7 +106,7 @@ static double edgeTheta(
         hessian->block(3, 9, 3, 3) += crossMatrix(dang2);
         hessian->block(0, 3, 3, 3) += crossMatrix(dang2);
         hessian->block(0, 9, 3, 3) -= crossMatrix(dang2);
-        hessian->block(9, 3, 3, 3) -= crossMatrix(dang2);        
+        hessian->block(9, 3, 3, 3) -= crossMatrix(dang2);
     }
 
     return theta;
@@ -205,7 +205,7 @@ static Eigen::Vector3d secondFundamentalFormEntries(
                 av[2] = 3 + i;
                 av[3] = i;
             }
-            
+
             for (int k = 0; k < 3; k++)
             {
                 for (int j = 0; j < 4; j++)
@@ -216,7 +216,7 @@ static Eigen::Vector3d secondFundamentalFormEntries(
                 (*hessian)[i].block(18 + i, 3 * hv[k], 1, 3) += 2.0 / cos(alpha) / cos(alpha) * orient * hderiv.block(0, 3 * k, 1, 3);
                 (*hessian)[i].block(3 * hv[k], 18 + i, 3, 1) += 2.0 / cos(alpha) / cos(alpha) * orient * hderiv.block(0, 3 * k, 1, 3).transpose();
             }
-            
+
             for (int k = 0; k < 4; k++)
             {
                 for (int j = 0; j < 4; j++)
@@ -229,7 +229,7 @@ static Eigen::Vector3d secondFundamentalFormEntries(
             }
 
             (*hessian)[i](18 + i, 18 + i) += 4.0 * altitude * tan(alpha) / cos(alpha) / cos(alpha);
-            
+
         }
     }
 
@@ -242,7 +242,7 @@ Eigen::Matrix2d MidedgeAngleTanFormulation::secondFundamentalForm(
     const Eigen::MatrixXd &curPos,
     const Eigen::VectorXd &extraDOFs,
     int face,
-    Eigen::Matrix<double, 4, 18 + 3*numExtraDOFs> *derivative, 
+    Eigen::Matrix<double, 4, 18 + 3*numExtraDOFs> *derivative,
     std::vector<Eigen::Matrix<double, 18 + 3*numExtraDOFs, 18 + 3*numExtraDOFs> > *hessian)
 {
     if (derivative)

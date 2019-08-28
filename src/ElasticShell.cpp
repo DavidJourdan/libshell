@@ -1,4 +1,4 @@
-#include "../include/ElasticShell.h"
+#include "libshell/ElasticShell.h"
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 #include <iostream>
@@ -7,11 +7,11 @@
 #include <random>
 #include <iostream>
 #include <vector>
-#include "../include/MeshConnectivity.h"
-#include "../include/MaterialModel.h"
-#include "../include/MidedgeAngleSinFormulation.h"
-#include "../include/MidedgeAngleTanFormulation.h"
-#include "../include/MidedgeAverageFormulation.h"
+#include "libshell/MeshConnectivity.h"
+#include "libshell/MaterialModel.h"
+#include "libshell/MidedgeAngleSinFormulation.h"
+#include "libshell/MidedgeAngleTanFormulation.h"
+#include "libshell/MidedgeAverageFormulation.h"
 
 template <class SFF>
 double ElasticShell<SFF>::elasticEnergy(
@@ -20,7 +20,7 @@ double ElasticShell<SFF>::elasticEnergy(
     const Eigen::VectorXd &extraDOFs,
     const MaterialModel<SFF> &mat,
     const Eigen::VectorXd &thicknesses,
-    const std::vector<Eigen::Matrix2d> &abars, 
+    const std::vector<Eigen::Matrix2d> &abars,
     const std::vector<Eigen::Matrix2d> &bbars,
     Eigen::VectorXd *derivative, // positions, then thetas
     std::vector<Eigen::Triplet<double> > *hessian)
@@ -45,7 +45,7 @@ double ElasticShell<SFF>::elasticEnergy(
     }
 
     double result = 0;
-    
+
     // stretching terms
     for (int i = 0; i < nfaces; i++)
     {
@@ -74,8 +74,8 @@ double ElasticShell<SFF>::elasticEnergy(
             }
         }
     }
-    
-    
+
+
     // bending terms
     constexpr int nedgedofs = SFF::numExtraDOFs;
     for (int i = 0; i < nfaces; i++)
@@ -179,13 +179,13 @@ void ElasticShell<SFF>::testStretchingFiniteDifferences(
 
     Eigen::MatrixXd testpos = curPos;
     testpos.setRandom();
-    
+
     int numtests = 100;
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> facegen(0,nfaces-1);
     double pert = 1e-6;
-    
+
     for (int i = 0; i < numtests; i++)
     {
 
@@ -211,7 +211,7 @@ void ElasticShell<SFF>::testStretchingFiniteDifferences(
                 std::cout << hess.row(3 * j + k) << std::endl << std::endl;
             }
         }
-    } 
+    }
 }
 
 template <class SFF>
@@ -232,7 +232,7 @@ void ElasticShell<SFF>::testBendingFiniteDifferences(
     testpos.setRandom();
     Eigen::VectorXd testedge = edgeDOFs;
     testedge.setRandom();
-    
+
     int numtests = 100;
     std::random_device dev;
     std::mt19937 rng(dev());
@@ -242,7 +242,7 @@ void ElasticShell<SFF>::testBendingFiniteDifferences(
 
     for (int i = 0; i < numtests; i++)
     {
-        
+
         int face = facegen(rng);
         std::cout << "Face " << face << std::endl;
         Eigen::Matrix<double, 1, 18 + 3 * nedgedofs> deriv;
@@ -262,7 +262,7 @@ void ElasticShell<SFF>::testBendingFiniteDifferences(
                 Eigen::MatrixXd derivdiff = (pertderiv - deriv) / pert;
                 std::cout << derivdiff << std::endl;
                 std::cout << "//" << std::endl;
-                std::cout << hess.row(3 * j + k) << std::endl << std::endl;                                
+                std::cout << hess.row(3 * j + k) << std::endl << std::endl;
             }
             int oppidx = mesh.vertexOppositeFaceEdge(face, j);
             if (oppidx != -1)
@@ -294,9 +294,9 @@ void ElasticShell<SFF>::testBendingFiniteDifferences(
                 std::cout << derivdiff << std::endl;
                 std::cout << "//" << std::endl;
                 std::cout << hess.row(18 + nedgedofs * j + k) << std::endl << std::endl;
-            }            
+            }
         }
-    } 
+    }
 }
 
 // instantions

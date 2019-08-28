@@ -1,12 +1,12 @@
-#include "../../include/NeoHookeanMaterial.h"
-#include "../../include/MeshConnectivity.h"
+#include "libshell/NeoHookeanMaterial.h"
+#include "libshell/MeshConnectivity.h"
 #include <vector>
 #include "../GeometryDerivatives.h"
 #include <Eigen/Dense>
 #include <iostream>
-#include "../../include/MidedgeAngleSinFormulation.h"
-#include "../../include/MidedgeAngleTanFormulation.h"
-#include "../../include/MidedgeAverageFormulation.h"
+#include "libshell/MidedgeAngleSinFormulation.h"
+#include "libshell/MidedgeAngleTanFormulation.h"
+#include "libshell/MidedgeAverageFormulation.h"
 
 template <class SFF>
 double NeoHookeanMaterial<SFF>::stretchingEnergy(
