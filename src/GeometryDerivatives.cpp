@@ -135,10 +135,8 @@ double triangleAltitude(const MeshConnectivity &mesh,
 
     if (derivative)
     {
-        for (int i = 0; i < 3; i++)
-        {
-            *derivative += nderiv.row(i) * n[i] / nnorm / enorm;
-        }
+        *derivative += nderiv.transpose() * n / nnorm / enorm;
+
         derivative->block(0, 6, 1, 3) += -nnorm / enorm / enorm / enorm * e.transpose();
         derivative->block(0, 3, 1, 3) += nnorm / enorm / enorm / enorm * e.transpose();
     }
@@ -147,10 +145,13 @@ double triangleAltitude(const MeshConnectivity &mesh,
     {
         for (int i = 0; i < 3; i++)
         {
-            *hessian += nhess[i] * n[i] / nnorm / enorm;
+            *hessian += nhess[i] * n(i) / nnorm / enorm;
         }
         Eigen::Matrix3d P = Eigen::Matrix3d::Identity() / nnorm - n*n.transpose() / nnorm / nnorm / nnorm;
-        *hessian += nderiv.transpose() * P * nderiv / enorm;
+        Eigen::Matrix<double, 3, 9> t1 = P * nderiv / enorm;
+        Eigen::Matrix<double, 9, 3> t2 = nderiv.transpose();
+        hessian->block(0, 0, 9, 2) += t2*t1.leftCols(2);
+        hessian->block(0, 2, 9, 7) += t2*t1.rightCols(7);
         hessian->block(6, 0, 3, 9) += -e * n.transpose() * nderiv / nnorm / enorm / enorm / enorm;
         hessian->block(3, 0, 3, 9) += e * n.transpose() * nderiv / nnorm / enorm / enorm / enorm;
         hessian->block(0, 6, 9, 3) += -nderiv.transpose() * n * e.transpose() / nnorm / enorm / enorm / enorm;
