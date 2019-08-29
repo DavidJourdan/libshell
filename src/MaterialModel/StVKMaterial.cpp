@@ -10,7 +10,7 @@
 template <class SFF>
 double StVKMaterial<SFF>::stretchingEnergy(
     const MeshConnectivity &mesh,
-    const Eigen::MatrixXd &curPos,    
+    const Eigen::MatrixXd &curPos,
     double thickness,
     const Eigen::Matrix2d &abar,
     int face,
@@ -53,8 +53,8 @@ double StVKMaterial<SFF>::stretchingEnergy(
         *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(0,0) * ahess[0];
         *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(1,0) * ahess[1];
         *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(0,1) * ahess[2];
-        *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(1,1) * ahess[3];        
-        Eigen::Matrix<double, 1, 9> inner00 = abarinv(0, 0) * aderiv.row(0) + abarinv(0, 1) * aderiv.row(2);        
+        *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(1,1) * ahess[3];
+        Eigen::Matrix<double, 1, 9> inner00 = abarinv(0, 0) * aderiv.row(0) + abarinv(0, 1) * aderiv.row(2);
         Eigen::Matrix<double, 1, 9> inner01 = abarinv(0, 0) * aderiv.row(1) + abarinv(0, 1) * aderiv.row(3);
         Eigen::Matrix<double, 1, 9> inner10 = abarinv(1, 0) * aderiv.row(0) + abarinv(1, 1) * aderiv.row(2);
         Eigen::Matrix<double, 1, 9> inner11 = abarinv(1, 0) * aderiv.row(1) + abarinv(1, 1) * aderiv.row(3);
@@ -83,6 +83,7 @@ double StVKMaterial<SFF>::bendingEnergy(
     Eigen::Matrix<double, 1, 18 + 3*SFF::numExtraDOFs> *derivative, // F(face, i), then the three vertices opposite F(face,i), then the extra DOFs on oppositeEdge(face,i)
     Eigen::Matrix<double, 18 + 3*SFF::numExtraDOFs, 18 + 3*SFF::numExtraDOFs> *hessian) const
 {
+    using namespace Eigen;
     double coeff = thickness*thickness*thickness / 12.0;
     constexpr int nedgedofs = SFF::numExtraDOFs;
     Eigen::Matrix2d abarinv = abar.inverse();
@@ -98,30 +99,25 @@ double StVKMaterial<SFF>::bendingEnergy(
     if (derivative)
     {
         derivative->setZero();
-        *derivative += coeff*dA * lameAlpha_ * M.trace() * abarinv(0,0) * bderiv.row(0);
-        *derivative += coeff*dA * lameAlpha_ * M.trace() * abarinv(1,0) * bderiv.row(1);
-        *derivative += coeff*dA * lameAlpha_ * M.trace() * abarinv(0,1) * bderiv.row(2);
-        *derivative += coeff*dA * lameAlpha_ * M.trace() * abarinv(1,1) * bderiv.row(3);
         Eigen::Matrix2d Mainv = M*abarinv;
-        *derivative += coeff*dA* 2.0 * lameBeta_ * Mainv(0, 0) * bderiv.row(0);
-        *derivative += coeff*dA* 2.0 * lameBeta_ * Mainv(1, 0) * bderiv.row(1);
-        *derivative += coeff*dA* 2.0 * lameBeta_ * Mainv(0, 1) * bderiv.row(2);
-        *derivative += coeff*dA* 2.0 * lameBeta_ * Mainv(1, 1) * bderiv.row(3);
+        Map<Vector4d> flat_Mainv(Mainv.data());
+        Map<Vector4d> flat_abarinv(abarinv.data());
+
+        *derivative += coeff*dA*bderiv.transpose() * (2.0*lameBeta_*flat_Mainv + lameAlpha_*M.trace()*flat_abarinv);
     }
 
     if (hessian)
     {
         hessian->setZero();
-        Eigen::Matrix<double, 1, 18 + 3*nedgedofs> inner = abarinv(0,0) * bderiv.row(0);
-        inner += abarinv(1,0) * bderiv.row(1);
-        inner += abarinv(0,1) * bderiv.row(2);
-        inner += abarinv(1,1) * bderiv.row(3);
+        Map<Vector4d> flat_abarinv(abarinv.data());
+        Matrix<double, 1, 18 + 3*nedgedofs> inner = bderiv.transpose() * flat_abarinv;
         *hessian += coeff*dA * lameAlpha_ * inner.transpose() * inner;
-        *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(0,0) * bhess[0];
-        *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(1,0) * bhess[1];
-        *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(0,1) * bhess[2];
-        *hessian += coeff * dA * lameAlpha_ * M.trace() * abarinv(1,1) * bhess[3];        
-        Eigen::Matrix<double, 1, 18 + 3*nedgedofs> inner00 = abarinv(0, 0) * bderiv.row(0) + abarinv(0, 1) * bderiv.row(2);        
+
+        Eigen::Matrix2d Mainv = M*abarinv;
+        for(int i = 0; i < 4; ++i) // iterate over Mainv and abarinv as if they were vectors
+            *hessian += coeff*dA * (2.0*lameBeta_*Mainv(i) + lameAlpha_*M.trace()*abarinv(i)) * bhess[i];
+
+        Eigen::Matrix<double, 1, 18 + 3*nedgedofs> inner00 = abarinv(0, 0) * bderiv.row(0) + abarinv(0, 1) * bderiv.row(2);
         Eigen::Matrix<double, 1, 18 + 3*nedgedofs> inner01 = abarinv(0, 0) * bderiv.row(1) + abarinv(0, 1) * bderiv.row(3);
         Eigen::Matrix<double, 1, 18 + 3*nedgedofs> inner10 = abarinv(1, 0) * bderiv.row(0) + abarinv(1, 1) * bderiv.row(2);
         Eigen::Matrix<double, 1, 18 + 3*nedgedofs> inner11 = abarinv(1, 0) * bderiv.row(1) + abarinv(1, 1) * bderiv.row(3);
@@ -129,11 +125,6 @@ double StVKMaterial<SFF>::bendingEnergy(
         *hessian += coeff * dA * 2.0 * lameBeta_ * inner01.transpose() * inner10;
         *hessian += coeff * dA * 2.0 * lameBeta_ * inner10.transpose() * inner01;
         *hessian += coeff * dA * 2.0 * lameBeta_ * inner11.transpose() * inner11;
-        Eigen::Matrix2d Mainv = M*abarinv;
-        *hessian += coeff * dA * 2.0 * lameBeta_ * Mainv(0, 0) * bhess[0];
-        *hessian += coeff * dA * 2.0 * lameBeta_ * Mainv(1, 0) * bhess[1];
-        *hessian += coeff * dA * 2.0 * lameBeta_ * Mainv(0, 1) * bhess[2];
-        *hessian += coeff * dA * 2.0 * lameBeta_ * Mainv(1, 1) * bhess[3];
     }
 
     return result;
