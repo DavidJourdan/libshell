@@ -31,29 +31,25 @@ double StVKMaterial<SFF>::stretchingEnergy(
 
     if (derivative)
     {
-      Matrix2d temp = lameAlpha_*M.trace()*abarinv + 2.0*lameBeta_*M*abarinv;
-      Map<Vector4d> flat(temp.data());
-
-      *derivative = coeff * dA * aderiv.transpose() * flat;
+        Matrix2d temp = lameAlpha_ * M.trace() * abarinv + 2.0 * lameBeta_ * M * abarinv;
+        *derivative = coeff * dA * aderiv.transpose() * Map<Vector4d>(temp.data());
     }
 
     if (hessian)
     {
-        Map<Vector4d> flat_abarinv(abarinv.data());
-        Matrix<double, 1, 9> inner = aderiv.transpose() * flat_abarinv;
+        Matrix<double, 1, 9> inner = aderiv.transpose() * Map<Vector4d>(abarinv.data());
         *hessian = lameAlpha_ * inner.transpose() * inner;
 
         Matrix2d Mainv = M*abarinv;
         for(int i = 0; i < 4; ++i) // iterate over Mainv and abarinv as if they were vectors
-          *hessian += (lameAlpha_*M.trace()*abarinv(i) + 2.0*lameBeta_*Mainv(i)) * ahess[i];
+            *hessian += (lameAlpha_ * M.trace() * abarinv(i) + 2.0 * lameBeta_ * Mainv(i)) * ahess[i];
 
         Matrix<double, 1, 9> inner00 = abarinv(0, 0) * aderiv.row(0) + abarinv(0, 1) * aderiv.row(2);
         Matrix<double, 1, 9> inner01 = abarinv(0, 0) * aderiv.row(1) + abarinv(0, 1) * aderiv.row(3);
         Matrix<double, 1, 9> inner10 = abarinv(1, 0) * aderiv.row(0) + abarinv(1, 1) * aderiv.row(2);
         Matrix<double, 1, 9> inner11 = abarinv(1, 0) * aderiv.row(1) + abarinv(1, 1) * aderiv.row(3);
         *hessian += 2.0 * lameBeta_ * inner00.transpose() * inner00;
-        *hessian += 2.0 * lameBeta_ * inner01.transpose() * inner10;
-        *hessian += 2.0 * lameBeta_ * inner10.transpose() * inner01;
+        *hessian += 2.0 * lameBeta_ * (inner01.transpose() * inner10  + inner10.transpose() * inner01);
         *hessian += 2.0 * lameBeta_ * inner11.transpose() * inner11;
 
         *hessian *= coeff * dA;
@@ -83,34 +79,30 @@ double StVKMaterial<SFF>::bendingEnergy(
     Matrix2d M = abarinv * (b - bbar);
     double dA = 0.5 * sqrt(abar.determinant());
 
-    double StVK = 0.5 * lameAlpha_ * M.trace() * M.trace() + lameBeta_ * (M*M).trace();
+    double StVK = 0.5 * lameAlpha_ * pow(M.trace(), 2) + lameBeta_ * (M*M).trace();
     double result = coeff * dA * StVK;
 
     if (derivative)
     {
-        Matrix2d temp = lameAlpha_*M.trace()*abarinv + 2.0*lameBeta_*M*abarinv;
-        Map<Vector4d> flat(temp.data());
-
-        *derivative = coeff * dA * bderiv.transpose() * flat;
+        Matrix2d temp = lameAlpha_ * M.trace() * abarinv + 2.0 * lameBeta_ * M * abarinv;
+        *derivative = coeff * dA * bderiv.transpose() * Map<Vector4d>(temp.data());
     }
 
     if (hessian)
     {
-        Map<Vector4d> flat_abarinv(abarinv.data());
-        Matrix<double, 1, 18 + 3*nedgedofs> inner = bderiv.transpose() * flat_abarinv;
+        Matrix<double, 1, 18 + 3*nedgedofs> inner = bderiv.transpose() * Map<Vector4d>(abarinv.data());
         *hessian = lameAlpha_ * inner.transpose() * inner;
 
         Matrix2d Mainv = M*abarinv;
         for(int i = 0; i < 4; ++i) // iterate over Mainv and abarinv as if they were vectors
-            *hessian += (lameAlpha_*M.trace()*abarinv(i) + 2.0*lameBeta_*Mainv(i)) * bhess[i];
+            *hessian += (lameAlpha_ * M.trace() * abarinv(i) + 2.0 * lameBeta_ * Mainv(i)) * bhess[i];
 
         Matrix<double, 1, 18 + 3*nedgedofs> inner00 = abarinv(0, 0) * bderiv.row(0) + abarinv(0, 1) * bderiv.row(2);
         Matrix<double, 1, 18 + 3*nedgedofs> inner01 = abarinv(0, 0) * bderiv.row(1) + abarinv(0, 1) * bderiv.row(3);
         Matrix<double, 1, 18 + 3*nedgedofs> inner10 = abarinv(1, 0) * bderiv.row(0) + abarinv(1, 1) * bderiv.row(2);
         Matrix<double, 1, 18 + 3*nedgedofs> inner11 = abarinv(1, 0) * bderiv.row(1) + abarinv(1, 1) * bderiv.row(3);
         *hessian += 2.0 * lameBeta_ * inner00.transpose() * inner00;
-        *hessian += 2.0 * lameBeta_ * inner01.transpose() * inner10;
-        *hessian += 2.0 * lameBeta_ * inner10.transpose() * inner01;
+        *hessian += 2.0 * lameBeta_ * (inner01.transpose() * inner10  + inner10.transpose() * inner01);
         *hessian += 2.0 * lameBeta_ * inner11.transpose() * inner11;
 
         *hessian *= coeff * dA;
