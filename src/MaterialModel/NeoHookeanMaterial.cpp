@@ -25,11 +25,11 @@ double NeoHookeanMaterial<SFF>::stretchingEnergy(
 
     double deta = a.determinant();
     double detabar = abar.determinant();
-    double lnJ = std::log(deta) - std::log(detabar);
+    double lnJ = std::log(deta / detabar) / 2;
     Matrix2d abarinv = adjugate(abar) / detabar;
 
-    double result = lameBeta_ * ((abarinv * a).trace() - 2.0 - lnJ) + lameAlpha_ * 0.5 * pow(lnJ, 2);
-    double coeff = thickness * std::sqrt(detabar) / 2.0;
+    double result = lameBeta_ * ((abarinv * a).trace() - 2 - 2 * lnJ) + lameAlpha_ * pow(lnJ, 2);
+    double coeff = thickness * std::sqrt(detabar) / 4;
     result *= coeff;
 
     if (derivative)
@@ -46,19 +46,19 @@ double NeoHookeanMaterial<SFF>::stretchingEnergy(
     {
         hessian->setZero();
 
-        Matrix2d aadj = adjugate(a);
+        Matrix2d ainv = adjugate(a) / deta;
+        double term1 = -lameBeta_ + lameAlpha_ * lnJ;
 
-        Matrix<double, 1, 9> aadjda = aderiv.transpose() * Map<Vector4d>(aadj.data());
-        *hessian = (lameBeta_ + lameAlpha_ * -lnJ + lameAlpha_) / pow(deta, 2) * aadjda.transpose() * aadjda;
+        Matrix<double, 1, 9> ainvda = aderiv.transpose() * Map<Vector4d>(ainv.data());
+        *hessian = (lameAlpha_ / 2 - term1) * ainvda.transpose() * ainvda;
 
         Matrix<double, 4, 9> aderivadj;
         aderivadj << aderiv.row(3), -aderiv.row(1), -aderiv.row(2), aderiv.row(0);
 
-        double term1 = (-lameBeta_ + lameAlpha_ * lnJ) / deta;
-        *hessian += term1 * aderivadj.transpose() * aderiv;
+        *hessian += term1 / deta * aderivadj.transpose() * aderiv;
 
         for(int i = 0; i < 4; ++i)
-          *hessian += (term1 * aadj(i) + lameBeta_ * abarinv(i)) * ahess[i];
+          *hessian += (term1 * ainv(i) + lameBeta_ * abarinv(i)) * ahess[i];
 
         *hessian *= coeff;
     }
@@ -407,7 +407,7 @@ double NeoHookeanMaterial<SFF>::bendingEnergy(
 
         *hessian *= coeff;
     }
-    
+
     return result;
 }
 
