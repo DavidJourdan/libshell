@@ -142,7 +142,7 @@ static Eigen::Vector3d secondFundamentalFormEntries(
         double theta = edgeTheta(mesh, curPos, edge, (derivative || hessian) ? &thetaderiv : NULL, hessian ? &thetahess : NULL);
 
         double orient = mesh.faceEdgeOrientation(face, i) == 0 ? 1.0 : -1.0;
-        double alpha = 0.5 * theta + orient * edgeThetas[edge];
+        double alpha = 0.5 * theta + orient * edgeThetas(edge);
         II[i] = 2.0 * altitude * tan(alpha);
 
         if (derivative)
@@ -150,9 +150,9 @@ static Eigen::Vector3d secondFundamentalFormEntries(
             int hv0 = i;
             int hv1 = (i + 1) % 3;
             int hv2 = (i + 2) % 3;
-            derivative->block(i, 3 * hv0, 1, 3) += 2.0 * tan(alpha) * hderiv.block(0, 0, 1, 3);
-            derivative->block(i, 3 * hv1, 1, 3) += 2.0 * tan(alpha) * hderiv.block(0, 3, 1, 3);
-            derivative->block(i, 3 * hv2, 1, 3) += 2.0 * tan(alpha) * hderiv.block(0, 6, 1, 3);
+            derivative->block<1,3>(i, 3 * hv0) += 2.0 * tan(alpha) * hderiv.segment<3>(0);
+            derivative->block<1,3>(i, 3 * hv1) += 2.0 * tan(alpha) * hderiv.segment<3>(3);
+            derivative->block<1,3>(i, 3 * hv2) += 2.0 * tan(alpha) * hderiv.segment<3>(6);
 
             int av0, av1, av2, av3;
             if (mesh.faceEdgeOrientation(face, i) == 0)
@@ -245,22 +245,6 @@ Eigen::Matrix2d MidedgeAngleTanFormulation::secondFundamentalForm(
     Eigen::Matrix<double, 4, 18 + 3*numExtraDOFs> *derivative,
     std::vector<Eigen::Matrix<double, 18 + 3*numExtraDOFs, 18 + 3*numExtraDOFs> > *hessian)
 {
-    if (derivative)
-    {
-        derivative->resize(4, 21);
-        derivative->setZero();
-    }
-    if (hessian)
-    {
-        hessian->resize(4);
-        for (int i = 0; i < 4; i++)
-        {
-            (*hessian)[i].resize(21, 21);
-            (*hessian)[i].setZero();
-        }
-    }
-
-
     Eigen::Matrix<double, 3, 21> IIderiv;
     std::vector < Eigen::Matrix<double, 21, 21> > IIhess;
 
@@ -271,25 +255,17 @@ Eigen::Matrix2d MidedgeAngleTanFormulation::secondFundamentalForm(
 
     if (derivative)
     {
-        derivative->row(0) += IIderiv.row(0);
-        derivative->row(0) += IIderiv.row(1);
-
-        derivative->row(1) += IIderiv.row(0);
-        derivative->row(2) += IIderiv.row(0);
-
-        derivative->row(3) += IIderiv.row(0);
-        derivative->row(3) += IIderiv.row(2);
+        derivative->row(0) = IIderiv.row(0) + IIderiv.row(1);
+        derivative->row(1) = IIderiv.row(0);
+        derivative->row(2) = IIderiv.row(0);
+        derivative->row(3) = IIderiv.row(0) + IIderiv.row(2);
     }
     if (hessian)
     {
-        (*hessian)[0] += IIhess[0];
-        (*hessian)[0] += IIhess[1];
-
-        (*hessian)[1] += IIhess[0];
-        (*hessian)[2] += IIhess[0];
-
-        (*hessian)[3] += IIhess[0];
-        (*hessian)[3] += IIhess[2];
+        (*hessian)[0] = IIhess[0] + IIhess[1];
+        (*hessian)[1] = IIhess[0];
+        (*hessian)[2] = IIhess[0];
+        (*hessian)[3] = IIhess[0] + IIhess[2];
     }
 
     return result;

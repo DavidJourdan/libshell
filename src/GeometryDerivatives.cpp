@@ -148,10 +148,8 @@ double triangleAltitude(const MeshConnectivity &mesh,
             *hessian += nhess[i] * n(i) / nnorm / enorm;
         }
         Eigen::Matrix3d P = Eigen::Matrix3d::Identity() / nnorm - n*n.transpose() / nnorm / nnorm / nnorm;
-        Eigen::Matrix<double, 3, 9> t1 = P * nderiv / enorm;
-        Eigen::Matrix<double, 9, 3> t2 = nderiv.transpose();
-        hessian->block(0, 0, 9, 2) += t2*t1.leftCols(2);
-        hessian->block(0, 2, 9, 7) += t2*t1.rightCols(7);
+        *hessian += nderiv.transpose() * P * nderiv / enorm;
+
         hessian->block(6, 0, 3, 9) += -e * n.transpose() * nderiv / nnorm / enorm / enorm / enorm;
         hessian->block(3, 0, 3, 9) += e * n.transpose() * nderiv / nnorm / enorm / enorm / enorm;
         hessian->block(0, 6, 9, 3) += -nderiv.transpose() * n * e.transpose() / nnorm / enorm / enorm / enorm;
