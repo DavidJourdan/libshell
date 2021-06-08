@@ -8,7 +8,7 @@
 #include "libshell/MidedgeAverageFormulation.h"
 #include "libshell/RestState.h"
 
-namespace LibShell
+namespace libshell
 {
 
     template <class SFF>

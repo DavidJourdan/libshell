@@ -1,7 +1,7 @@
 #ifndef RESTSTATE_H
 #define RESTSTATE_H
 
-namespace LibShell
+namespace libshell
 {
 
     enum class RestStateType

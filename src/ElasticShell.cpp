@@ -14,7 +14,7 @@
 #include "libshell/MidedgeAngleTanFormulation.h"
 #include "libshell/MidedgeAverageFormulation.h"
 
-namespace LibShell
+namespace libshell
 {
 
     template <class SFF>

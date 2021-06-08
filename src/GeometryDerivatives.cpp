@@ -4,7 +4,7 @@
 #include <random>
 #include <Eigen/Geometry>
 
-namespace LibShell
+namespace libshell
 {
 
     Eigen::Matrix3d crossMatrix(Eigen::Vector3d v)

@@ -6,7 +6,8 @@
 #include <Eigen/Sparse>
 #include "MaterialModel.h"
 
-namespace LibShell {
+namespace libshell
+{
 
     class MeshConnectivity;
     struct RestState;
@@ -39,30 +40,30 @@ namespace LibShell {
          *                  the derivative.
          */
         static double elasticEnergy(
-            const MeshConnectivity& mesh,
-            const Eigen::MatrixXd& curPos,
-            const Eigen::VectorXd& edgeDOFs,
-            const MaterialModel<SFF>& mat,
+            const MeshConnectivity &mesh,
+            const Eigen::MatrixXd &curPos,
+            const Eigen::VectorXd &edgeDOFs,
+            const MaterialModel<SFF> &mat,
             const RestState &restState,
-            Eigen::VectorXd* derivative, // positions, then thetas
-            std::vector<Eigen::Triplet<double> >* hessian);
+            Eigen::VectorXd *derivative, // positions, then thetas
+            std::vector<Eigen::Triplet<double>> *hessian);
 
         static double elasticEnergy(
-            const MeshConnectivity& mesh,
-            const Eigen::MatrixXd& curPos,
-            const Eigen::VectorXd& edgeDOFs,
-            const MaterialModel<SFF>& mat,
+            const MeshConnectivity &mesh,
+            const Eigen::MatrixXd &curPos,
+            const Eigen::VectorXd &edgeDOFs,
+            const MaterialModel<SFF> &mat,
             const RestState &restState,
             int whichTerms,
-            Eigen::VectorXd* derivative, // positions, then thetas
-            std::vector<Eigen::Triplet<double> >* hessian);
+            Eigen::VectorXd *derivative, // positions, then thetas
+            std::vector<Eigen::Triplet<double>> *hessian);
 
         /*
          * Computes current fundamental forms for a given mesh. Can be used to initialize these forms from a given mesh rest state.
          */
-        static void firstFundamentalForms(const MeshConnectivity& mesh, const Eigen::MatrixXd& curPos, std::vector<Eigen::Matrix2d>& abars);
+        static void firstFundamentalForms(const MeshConnectivity &mesh, const Eigen::MatrixXd &curPos, std::vector<Eigen::Matrix2d> &abars);
 
-        static void secondFundamentalForms(const MeshConnectivity& mesh, const Eigen::MatrixXd& curPos, const Eigen::VectorXd& edgeDOFs, std::vector<Eigen::Matrix2d>& bbars);
+        static void secondFundamentalForms(const MeshConnectivity &mesh, const Eigen::MatrixXd &curPos, const Eigen::VectorXd &edgeDOFs, std::vector<Eigen::Matrix2d> &bbars);
 
         enum EnergyTerm
         {

@@ -3,7 +3,8 @@
 #include <vector>
 #include <map>
 
-namespace LibShell {
+namespace libshell
+{
 
     MeshConnectivity::MeshConnectivity()
     {
@@ -15,9 +16,9 @@ namespace LibShell {
         EOpp.resize(0, 2);
     }
 
-    MeshConnectivity::MeshConnectivity(const Eigen::MatrixXi& F) : F(F)
+    MeshConnectivity::MeshConnectivity(const Eigen::MatrixXi &F) : F(F)
     {
-        std::map<std::pair<int, int>, Eigen::Vector2i > edgeFaces;
+        std::map<std::pair<int, int>, Eigen::Vector2i> edgeFaces;
         int nfaces = (int)F.rows();
         for (int i = 0; i < nfaces; i++)
         {
@@ -71,7 +72,8 @@ namespace LibShell {
             {
                 int v0 = F(i, (j + 1) % 3);
                 int v1 = F(i, (j + 2) % 3);
-                if (v0 > v1) std::swap(v0, v1);
+                if (v0 > v1)
+                    std::swap(v0, v1);
                 FE(i, j) = edgeIndices[std::pair<int, int>(v0, v1)];
             }
         }

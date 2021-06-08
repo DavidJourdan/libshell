@@ -3,7 +3,7 @@
 
 #include "MaterialModel.h"
 
-namespace LibShell
+namespace libshell
 {
 
     /*

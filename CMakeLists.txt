@@ -7,12 +7,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-file(GLOB LIBFILES src/*.cpp src/SecondFundamentalForm/*.cpp src/MaterialModel/*.cpp)
+file(GLOB LIBFILES 
+  src/*.cpp 
+  src/SecondFundamentalForm/*.cpp 
+  src/MaterialModel/*.cpp)
 add_library(libshell STATIC ${LIBFILES})
 
 target_include_directories(libshell PRIVATE "${EIGEN3_INCLUDE_DIR}")
 target_include_directories(libshell PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")
 
-file(GLOB TESTFILES tests/*.cpp)
-add_executable(tests_${PROJECT_NAME} ${TESTFILES})
-target_link_libraries(tests_${PROJECT_NAME} ${PROJECT_NAME} igl::core)
+# file(GLOB TESTFILES tests/*.cpp)
+# add_executable(tests_${PROJECT_NAME} ${TESTFILES})
+# target_link_libraries(tests_${PROJECT_NAME} ${PROJECT_NAME} igl::core)

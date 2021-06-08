@@ -8,26 +8,27 @@
 #include "../../include/MidedgeAverageFormulation.h"
 #include "../../include/RestState.h"
 
-namespace LibShell {
+namespace libshell
+{
 
     template <class SFF>
     double TensionFieldStVKMaterial<SFF>::stretchingEnergy(
-        const MeshConnectivity& mesh,
-        const Eigen::MatrixXd& curPos,
-        const RestState& restState,
+        const MeshConnectivity &mesh,
+        const Eigen::MatrixXd &curPos,
+        const RestState &restState,
         int face,
-        Eigen::Matrix<double, 1, 9>* derivative, // F(face, i)
-        Eigen::Matrix<double, 9, 9>* hessian) const
+        Eigen::Matrix<double, 1, 9> *derivative, // F(face, i)
+        Eigen::Matrix<double, 9, 9> *hessian) const
     {
         using namespace Eigen;
 
         assert(restState.type() == RestStateType::RST_MONOLAYER);
-        const MonolayerRestState& rs = (const MonolayerRestState&)restState;
+        const MonolayerRestState &rs = (const MonolayerRestState &)restState;
 
         double coeff = rs.thicknesses[face] / 4.0;
         Matrix2d abarinv = rs.abars[face].inverse();
         Matrix<double, 4, 9> aderiv;
-        std::vector<Matrix<double, 9, 9> > ahess;
+        std::vector<Matrix<double, 9, 9>> ahess;
         Matrix2d a = firstFundamentalForm(mesh, curPos, face, (derivative || hessian) ? &aderiv : NULL, hessian ? &ahess : NULL);
         Matrix2d M = abarinv * (a - rs.abars[face]);
         double dA = 0.5 * sqrt(rs.abars[face].determinant());
@@ -168,7 +169,6 @@ namespace LibShell {
                     innerVec += inner(1, 0) * aderiv.row(2);
                     innerVec += inner(1, 1) * aderiv.row(3);
                     (*hessian) += 2.0 * kstretching * -dA * sign * lambda / denom / denom / denom * innerVec.transpose() * innerVec;
-
                 }
             }
             return result;
@@ -177,13 +177,13 @@ namespace LibShell {
 
     template <class SFF>
     double TensionFieldStVKMaterial<SFF>::bendingEnergy(
-        const MeshConnectivity& mesh,
-        const Eigen::MatrixXd& curPos,
-        const Eigen::VectorXd& extraDOFs,
-        const RestState& restState,
+        const MeshConnectivity &mesh,
+        const Eigen::MatrixXd &curPos,
+        const Eigen::VectorXd &extraDOFs,
+        const RestState &restState,
         int face,
-        Eigen::Matrix<double, 1, 18 + 3 * SFF::numExtraDOFs>* derivative, // F(face, i), then the three vertices opposite F(face,i), then the extra DOFs on oppositeEdge(face,i)
-        Eigen::Matrix<double, 18 + 3 * SFF::numExtraDOFs, 18 + 3 * SFF::numExtraDOFs>* hessian) const
+        Eigen::Matrix<double, 1, 18 + 3 * SFF::numExtraDOFs> *derivative, // F(face, i), then the three vertices opposite F(face,i), then the extra DOFs on oppositeEdge(face,i)
+        Eigen::Matrix<double, 18 + 3 * SFF::numExtraDOFs, 18 + 3 * SFF::numExtraDOFs> *hessian) const
     {
         if (derivative)
             derivative->setZero();

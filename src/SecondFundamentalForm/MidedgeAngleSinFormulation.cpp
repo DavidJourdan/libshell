@@ -6,14 +6,15 @@
 #include <random>
 #include <Eigen/Geometry>
 
-namespace LibShell {
+namespace libshell
+{
 
     static double edgeTheta(
-        const MeshConnectivity& mesh,
-        const Eigen::MatrixXd& curPos,
+        const MeshConnectivity &mesh,
+        const Eigen::MatrixXd &curPos,
         int edge,
-        Eigen::Matrix<double, 1, 12>* derivative, // edgeVertex, then edgeOppositeVertex
-        Eigen::Matrix<double, 12, 12>* hessian)
+        Eigen::Matrix<double, 1, 12> *derivative, // edgeVertex, then edgeOppositeVertex
+        Eigen::Matrix<double, 12, 12> *hessian)
     {
         if (derivative)
             derivative->setZero();
@@ -61,8 +62,8 @@ namespace LibShell {
             wqm[1] = crossMatrix(q1 - q3);
             wqm[2] = crossMatrix(q3 - q0);
 
-            int vindices[3] = { 3, 6, 0 };
-            int windices[3] = { 9, 0, 3 };
+            int vindices[3] = {3, 6, 0};
+            int windices[3] = {9, 0, 3};
 
             for (int i = 0; i < 3; i++)
             {
@@ -83,7 +84,6 @@ namespace LibShell {
                 hessian->block<3, 3>(3, windices[i]) += anghess.block<3, 3>(6, 3) * wqm[i];
                 hessian->block<3, 3>(windices[i], 0) += -wqm[i].transpose() * anghess.block<3, 3>(3, 6);
                 hessian->block<3, 3>(0, windices[i]) += -anghess.block<3, 3>(6, 3) * wqm[i];
-
             }
 
             Eigen::Vector3d dang1 = angderiv.block<1, 3>(0, 0).transpose();
@@ -111,12 +111,12 @@ namespace LibShell {
     }
 
     static Eigen::Vector3d secondFundamentalFormEntries(
-        const MeshConnectivity& mesh,
-        const Eigen::MatrixXd& curPos,
-        const Eigen::VectorXd& edgeThetas,
+        const MeshConnectivity &mesh,
+        const Eigen::MatrixXd &curPos,
+        const Eigen::VectorXd &edgeThetas,
         int face,
-        Eigen::Matrix<double, 3, 21>* derivative,
-        std::vector<Eigen::Matrix<double, 21, 21> >* hessian)
+        Eigen::Matrix<double, 3, 21> *derivative,
+        std::vector<Eigen::Matrix<double, 21, 21>> *hessian)
     {
         if (derivative)
             derivative->setZero();
@@ -172,7 +172,6 @@ namespace LibShell {
                 derivative->block(i, 3 * av2, 1, 3) += altitude * cos(alpha) * thetaderiv.block(0, 6, 1, 3);
                 derivative->block(i, 3 * av3, 1, 3) += altitude * cos(alpha) * thetaderiv.block(0, 9, 1, 3);
                 (*derivative)(i, 18 + i) += 2.0 * altitude * cos(alpha) * orient;
-
             }
 
             if (hessian)
@@ -234,14 +233,13 @@ namespace LibShell {
         return II;
     }
 
-
     Eigen::Matrix2d MidedgeAngleSinFormulation::secondFundamentalForm(
-        const MeshConnectivity& mesh,
-        const Eigen::MatrixXd& curPos,
-        const Eigen::VectorXd& extraDOFs,
+        const MeshConnectivity &mesh,
+        const Eigen::MatrixXd &curPos,
+        const Eigen::VectorXd &extraDOFs,
         int face,
-        Eigen::Matrix<double, 4, 18 + 3 * numExtraDOFs>* derivative,
-        std::vector<Eigen::Matrix<double, 18 + 3 * numExtraDOFs, 18 + 3 * numExtraDOFs> >* hessian)
+        Eigen::Matrix<double, 4, 18 + 3 * numExtraDOFs> *derivative,
+        std::vector<Eigen::Matrix<double, 18 + 3 * numExtraDOFs, 18 + 3 * numExtraDOFs>> *hessian)
     {
         if (derivative)
         {
@@ -258,9 +256,8 @@ namespace LibShell {
             }
         }
 
-
         Eigen::Matrix<double, 3, 21> IIderiv;
-        std::vector < Eigen::Matrix<double, 21, 21> > IIhess;
+        std::vector<Eigen::Matrix<double, 21, 21>> IIhess;
 
         Eigen::Vector3d II = secondFundamentalFormEntries(mesh, curPos, extraDOFs, face, derivative ? &IIderiv : NULL, hessian ? &IIhess : NULL);
 
@@ -295,7 +292,7 @@ namespace LibShell {
 
     constexpr int MidedgeAngleSinFormulation::numExtraDOFs;
 
-    void MidedgeAngleSinFormulation::initializeExtraDOFs(Eigen::VectorXd& extraDOFs, const MeshConnectivity& mesh, const Eigen::MatrixXd& curPos)
+    void MidedgeAngleSinFormulation::initializeExtraDOFs(Eigen::VectorXd &extraDOFs, const MeshConnectivity &mesh, const Eigen::MatrixXd &curPos)
     {
         extraDOFs.resize(mesh.nEdges());
         extraDOFs.setZero();

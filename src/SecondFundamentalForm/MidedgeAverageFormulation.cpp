@@ -4,14 +4,15 @@
 #include <iostream>
 #include <random>
 
-namespace LibShell {
+namespace libshell
+{
 
     static Eigen::Vector3d secondFundamentalFormEntries(
-        const MeshConnectivity& mesh,
-        const Eigen::MatrixXd& curPos,
+        const MeshConnectivity &mesh,
+        const Eigen::MatrixXd &curPos,
         int face,
-        Eigen::Matrix<double, 3, 18>* derivative,
-        std::vector<Eigen::Matrix<double, 18, 18> >* hessian)
+        Eigen::Matrix<double, 3, 18> *derivative,
+        std::vector<Eigen::Matrix<double, 18, 18>> *hessian)
     {
         if (derivative)
             derivative->setZero();
@@ -26,10 +27,10 @@ namespace LibShell {
 
         Eigen::Vector3d oppNormals[3];
         Eigen::Matrix<double, 3, 9> dn[3];
-        std::vector<Eigen::Matrix<double, 9, 9> > hn[3];
+        std::vector<Eigen::Matrix<double, 9, 9>> hn[3];
 
         Eigen::Matrix<double, 3, 9> dcn;
-        std::vector<Eigen::Matrix<double, 9, 9> > hcn;
+        std::vector<Eigen::Matrix<double, 9, 9>> hcn;
         Eigen::Vector3d cNormal = faceNormal(mesh, curPos, face, 0, (derivative || hessian) ? &dcn : NULL, hessian ? &hcn : NULL);
 
         for (int i = 0; i < 3; i++)
@@ -188,14 +189,13 @@ namespace LibShell {
         return II;
     }
 
-
     Eigen::Matrix2d MidedgeAverageFormulation::secondFundamentalForm(
-        const MeshConnectivity& mesh,
-        const Eigen::MatrixXd& curPos,
-        const Eigen::VectorXd& extraDOFs,
+        const MeshConnectivity &mesh,
+        const Eigen::MatrixXd &curPos,
+        const Eigen::VectorXd &extraDOFs,
         int face,
-        Eigen::Matrix<double, 4, 18>* derivative,
-        std::vector<Eigen::Matrix<double, 18, 18> >* hessian)
+        Eigen::Matrix<double, 4, 18> *derivative,
+        std::vector<Eigen::Matrix<double, 18, 18>> *hessian)
     {
         if (derivative)
         {
@@ -212,9 +212,8 @@ namespace LibShell {
             }
         }
 
-
         Eigen::Matrix<double, 3, 18> IIderiv;
-        std::vector < Eigen::Matrix<double, 18, 18> > IIhess;
+        std::vector<Eigen::Matrix<double, 18, 18>> IIhess;
 
         Eigen::Vector3d II = secondFundamentalFormEntries(mesh, curPos, face, derivative ? &IIderiv : NULL, hessian ? &IIhess : NULL);
 
@@ -249,7 +248,7 @@ namespace LibShell {
 
     constexpr int MidedgeAverageFormulation::numExtraDOFs;
 
-    void MidedgeAverageFormulation::initializeExtraDOFs(Eigen::VectorXd& extraDOFs, const MeshConnectivity& mesh, const Eigen::MatrixXd& curPos)
+    void MidedgeAverageFormulation::initializeExtraDOFs(Eigen::VectorXd &extraDOFs, const MeshConnectivity &mesh, const Eigen::MatrixXd &curPos)
     {
         extraDOFs.resize(0);
     }

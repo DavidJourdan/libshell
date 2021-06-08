@@ -9,12 +9,12 @@
 #include "../include/ElasticShell.h"
 
 template <class SFF>
-void takeOneStep(const LibShell::MeshConnectivity &mesh,
-    Eigen::MatrixXd &curPos,
-    Eigen::VectorXd &curEdgeDOFs,
-    const LibShell::MaterialModel<SFF> &mat,
-    const LibShell::RestState &restState,
-    double &reg)
+void takeOneStep(const libshell::MeshConnectivity &mesh,
+                 Eigen::MatrixXd &curPos,
+                 Eigen::VectorXd &curEdgeDOFs,
+                 const libshell::MaterialModel<SFF> &mat,
+                 const libshell::RestState &restState,
+                 double &reg)
 {
 
     int nverts = (int)curPos.rows();
@@ -26,9 +26,9 @@ void takeOneStep(const LibShell::MeshConnectivity &mesh,
     while (true)
     {
         Eigen::VectorXd derivative;
-        std::vector<Eigen::Triplet<double> > hessian;
+        std::vector<Eigen::Triplet<double>> hessian;
 
-        double energy = LibShell::ElasticShell<SFF>::elasticEnergy(mesh, curPos, curEdgeDOFs, mat, restState, &derivative, &hessian);
+        double energy = libshell::ElasticShell<SFF>::elasticEnergy(mesh, curPos, curEdgeDOFs, mat, restState, &derivative, &hessian);
 
         Eigen::SparseMatrix<double> H(freeDOFs, freeDOFs);
         H.setFromTriplets(hessian.begin(), hessian.end());
@@ -37,7 +37,7 @@ void takeOneStep(const LibShell::MeshConnectivity &mesh,
         Eigen::SparseMatrix<double> I(freeDOFs, freeDOFs);
         I.setIdentity();
         H += reg * I;
-        
+
         Eigen::VectorXd maxvals(freeDOFs);
         maxvals.setZero();
         for (int k = 0; k < H.outerSize(); ++k)
@@ -47,11 +47,11 @@ void takeOneStep(const LibShell::MeshConnectivity &mesh,
                 maxvals[it.row()] = std::max(maxvals[it.row()], std::fabs(it.value()));
             }
         }
-        std::vector<Eigen::Triplet<double> > Dcoeffs;
+        std::vector<Eigen::Triplet<double>> Dcoeffs;
         for (int i = 0; i < freeDOFs; i++)
         {
-            double val = (maxvals[i] == 0.0 ? 1.0 : 1.0 / std::sqrt(maxvals[i]));            
-            Dcoeffs.push_back({ i,i, val });
+            double val = (maxvals[i] == 0.0 ? 1.0 : 1.0 / std::sqrt(maxvals[i]));
+            Dcoeffs.push_back({i, i, val});
         }
         Eigen::SparseMatrix<double> D(freeDOFs, freeDOFs);
         D.setFromTriplets(Dcoeffs.begin(), Dcoeffs.end());
@@ -59,7 +59,7 @@ void takeOneStep(const LibShell::MeshConnectivity &mesh,
         Eigen::SparseMatrix<double> DHDT = D * H * D.transpose();
 
         std::cout << "solving, original force residual: " << force.norm() << std::endl;
-        Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > solver(DHDT);
+        Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> solver(DHDT);
         if (solver.info() == Eigen::Success)
         {
             Eigen::VectorXd rhs = D * force;
@@ -72,16 +72,14 @@ void takeOneStep(const LibShell::MeshConnectivity &mesh,
             }
             Eigen::VectorXd newEdgeDofs = curEdgeDOFs + descentDir.segment(3 * nverts, nedgedofs * nedges);
 
-
-
-            double newenergy = LibShell::ElasticShell<SFF>::elasticEnergy(mesh, newPos, newEdgeDofs, mat, restState, &derivative, NULL);
+            double newenergy = libshell::ElasticShell<SFF>::elasticEnergy(mesh, newPos, newEdgeDofs, mat, restState, &derivative, NULL);
             force = -derivative;
 
             double forceResidual = force.norm();
 
             if (newenergy <= energy)
             {
-                std::cout << "Old energy: " << energy << " new energy: " << newenergy << " force residual " << forceResidual << " pos change " << descentDir.segment(0, 3 * nverts).norm() << " theta change " << descentDir.segment(3 * nverts, nedgedofs*nedges).norm() << " lambda " << reg << std::endl;
+                std::cout << "Old energy: " << energy << " new energy: " << newenergy << " force residual " << forceResidual << " pos change " << descentDir.segment(0, 3 * nverts).norm() << " theta change " << descentDir.segment(3 * nverts, nedgedofs * nedges).norm() << " lambda " << reg << std::endl;
                 curPos = newPos;
                 curEdgeDOFs = newEdgeDofs;
                 reg /= 2.0;
@@ -89,7 +87,7 @@ void takeOneStep(const LibShell::MeshConnectivity &mesh,
             }
             else
             {
-                std::cout << "Not a descent direction; old energy: " << energy << " new energy: " << newenergy << " lambda now: " << 2.0*reg << std::endl;
+                std::cout << "Not a descent direction; old energy: " << energy << " new energy: " << newenergy << " lambda now: " << 2.0 * reg << std::endl;
             }
         }
         else
@@ -98,7 +96,6 @@ void takeOneStep(const LibShell::MeshConnectivity &mesh,
         }
 
         reg *= 2.0;
-
     }
 }
 
