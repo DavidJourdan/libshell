@@ -9,13 +9,11 @@
 #include "../include/ElasticShell.h"
 
 template <class SFF>
-void takeOneStep(const MeshConnectivity &mesh,
+void takeOneStep(const LibShell::MeshConnectivity &mesh,
     Eigen::MatrixXd &curPos,
     Eigen::VectorXd &curEdgeDOFs,
-    const MaterialModel<SFF> &mat,
-    const Eigen::VectorXd &thicknesses,
-    const std::vector<Eigen::Matrix2d> &abars,
-    const std::vector<Eigen::Matrix2d> &bbars,
+    const LibShell::MaterialModel<SFF> &mat,
+    const LibShell::RestState &restState,
     double &reg)
 {
 
@@ -30,7 +28,7 @@ void takeOneStep(const MeshConnectivity &mesh,
         Eigen::VectorXd derivative;
         std::vector<Eigen::Triplet<double> > hessian;
 
-        double energy = ElasticShell<SFF>::elasticEnergy(mesh, curPos, curEdgeDOFs, mat, thicknesses, abars, bbars, &derivative, &hessian);
+        double energy = LibShell::ElasticShell<SFF>::elasticEnergy(mesh, curPos, curEdgeDOFs, mat, restState, &derivative, &hessian);
 
         Eigen::SparseMatrix<double> H(freeDOFs, freeDOFs);
         H.setFromTriplets(hessian.begin(), hessian.end());
@@ -39,11 +37,33 @@ void takeOneStep(const MeshConnectivity &mesh,
         Eigen::SparseMatrix<double> I(freeDOFs, freeDOFs);
         I.setIdentity();
         H += reg * I;
+        
+        Eigen::VectorXd maxvals(freeDOFs);
+        maxvals.setZero();
+        for (int k = 0; k < H.outerSize(); ++k)
+        {
+            for (Eigen::SparseMatrix<double>::InnerIterator it(H, k); it; ++it)
+            {
+                maxvals[it.row()] = std::max(maxvals[it.row()], std::fabs(it.value()));
+            }
+        }
+        std::vector<Eigen::Triplet<double> > Dcoeffs;
+        for (int i = 0; i < freeDOFs; i++)
+        {
+            double val = (maxvals[i] == 0.0 ? 1.0 : 1.0 / std::sqrt(maxvals[i]));            
+            Dcoeffs.push_back({ i,i, val });
+        }
+        Eigen::SparseMatrix<double> D(freeDOFs, freeDOFs);
+        D.setFromTriplets(Dcoeffs.begin(), Dcoeffs.end());
+
+        Eigen::SparseMatrix<double> DHDT = D * H * D.transpose();
+
         std::cout << "solving, original force residual: " << force.norm() << std::endl;
-        Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > solver(H);
+        Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > solver(DHDT);
         if (solver.info() == Eigen::Success)
         {
-            Eigen::VectorXd descentDir = solver.solve(force);
+            Eigen::VectorXd rhs = D * force;
+            Eigen::VectorXd descentDir = D * solver.solve(rhs);
             std::cout << "solved" << std::endl;
             Eigen::MatrixXd newPos = curPos;
             for (int i = 0; i < nverts; i++)
@@ -54,7 +74,7 @@ void takeOneStep(const MeshConnectivity &mesh,
 
 
 
-            double newenergy = ElasticShell<SFF>::elasticEnergy(mesh, newPos, newEdgeDofs, mat, thicknesses, abars, bbars, &derivative, NULL);
+            double newenergy = LibShell::ElasticShell<SFF>::elasticEnergy(mesh, newPos, newEdgeDofs, mat, restState, &derivative, NULL);
             force = -derivative;
 
             double forceResidual = force.norm();

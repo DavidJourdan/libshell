@@ -12,3 +12,7 @@ add_library(libshell STATIC ${LIBFILES})
 
 target_include_directories(libshell PRIVATE "${EIGEN3_INCLUDE_DIR}")
 target_include_directories(libshell PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")
+
+file(GLOB TESTFILES tests/*.cpp)
+add_executable(tests_${PROJECT_NAME} ${TESTFILES})
+target_link_libraries(tests_${PROJECT_NAME} ${PROJECT_NAME} igl::core)
