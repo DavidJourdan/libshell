@@ -209,4 +209,4 @@ template class TensionFieldStVKMaterial<MidedgeAngleSinFormulation>;
 template class TensionFieldStVKMaterial<MidedgeAngleTanFormulation>;
 template class TensionFieldStVKMaterial<MidedgeAverageFormulation>;
 
-}; // namespace libshell
+} // namespace libshell
