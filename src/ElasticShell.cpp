@@ -8,6 +8,8 @@
 #include "libshell/MidedgeAverageFormulation.h"
 #include "libshell/RestState.h"
 
+#include <iostream>
+
 namespace libshell
 {
 
@@ -174,9 +176,10 @@ double ElasticShell<SFF>::elasticEnergy(const MeshConnectivity &mesh,
 }
 
 template <class SFF>
-void ElasticShell<SFF>::firstFundamentalForms(const MeshConnectivity &mesh,
-                                              const Eigen::MatrixXd &curPos,
-                                              std::vector<Eigen::Matrix2d> &abars)
+void ElasticShell<SFF>::firstFundamentalForms(
+    const MeshConnectivity &mesh,
+    const Eigen::MatrixXd &curPos,
+    std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> &abars)
 {
   int nfaces = mesh.nFaces();
   abars.resize(nfaces);
@@ -187,10 +190,11 @@ void ElasticShell<SFF>::firstFundamentalForms(const MeshConnectivity &mesh,
 }
 
 template <class SFF>
-void ElasticShell<SFF>::secondFundamentalForms(const MeshConnectivity &mesh,
-                                               const Eigen::MatrixXd &curPos,
-                                               const Eigen::VectorXd &edgeDOFs,
-                                               std::vector<Eigen::Matrix2d> &bbars)
+void ElasticShell<SFF>::secondFundamentalForms(
+    const MeshConnectivity &mesh,
+    const Eigen::MatrixXd &curPos,
+    const Eigen::VectorXd &edgeDOFs,
+    std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> &bbars)
 {
   int nfaces = mesh.nFaces();
   bbars.resize(nfaces);

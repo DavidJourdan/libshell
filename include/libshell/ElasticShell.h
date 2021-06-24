@@ -69,12 +69,12 @@ public:
    */
   static void firstFundamentalForms(const MeshConnectivity &mesh,
                                     const Eigen::MatrixXd &curPos,
-                                    std::vector<Eigen::Matrix2d> &abars);
+                                    std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> &abars);
 
   static void secondFundamentalForms(const MeshConnectivity &mesh,
                                      const Eigen::MatrixXd &curPos,
                                      const Eigen::VectorXd &edgeDOFs,
-                                     std::vector<Eigen::Matrix2d> &bbars);
+                                     std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> &bbars);
 
   enum EnergyTerm { ET_STRETCHING = 1, ET_BENDING = 2 };
 };

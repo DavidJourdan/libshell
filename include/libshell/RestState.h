@@ -1,6 +1,8 @@
 #ifndef RESTSTATE_H
 #define RESTSTATE_H
 
+#include <Eigen/StdVector>
+
 namespace libshell
 {
 
@@ -24,8 +26,8 @@ public:
   virtual RestStateType type() const { return RestStateType::RST_MONOLAYER; }
 
   std::vector<double> thicknesses;
-  std::vector<Eigen::Matrix2d> abars;
-  std::vector<Eigen::Matrix2d> bbars;
+  std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> abars;
+  std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> bbars;
 };
 
 /*
